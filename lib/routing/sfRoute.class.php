@@ -723,7 +723,7 @@ class sfRoute implements Serializable
       //dont allow a param name to be empty - #4173
       if (!empty($tmp[$i]))
       {
-        $parameters[$tmp[$i]] = isset($tmp[$i + 1]) ? urldecode($tmp[$i + 1]) : true;
+        $parameters[$tmp[$i]] = isset($tmp[$i + 1]) ? urldecode($tmp[$i + 1]) : null;
       }
     }
 
