@@ -45,6 +45,35 @@ class sfNamespacedParameterHolder extends sfParameterHolder
   }
 
   /**
+   * Serializes the current instance for PHP 7.4+.
+   *
+   * @return array
+   */
+  public function __serialize()
+  {
+    return [$this->default_namespace, $this->parameters];
+  }
+
+  /**
+   * Unserializes a sfParameterHolder instance for PHP 7.4+.
+   * [CVE-2024-28861] Check type of returned data to avoid deserialization vulnerabilities.
+   *
+   * @param array $data
+   */
+  public function __unserialize($data)
+  {
+    if (!is_array($data) || 2 !== \count($data)) {
+      $this->default_namespace = null;
+      $this->parameters = [];
+
+      return;
+    }
+
+    $this->default_namespace = $data[0];
+    $this->parameters = $data[1];
+  }
+
+  /**
    * Sets the default namespace value.
    *
    * @param string $namespace  Default namespace
@@ -366,23 +395,20 @@ class sfNamespacedParameterHolder extends sfParameterHolder
   /**
    * Serializes the current instance.
    *
-   * @return array Objects instance
+   * @return string Objects instance
    */
   public function serialize()
   {
-    return serialize(array($this->default_namespace, $this->parameters));
+    return serialize($this->__serialize());
   }
 
   /**
    * Unserializes a sfNamespacedParameterHolder instance.
    *
-   * @param string $serialized  A serialized sfNamespacedParameterHolder instance
+   * @param string $serialized A serialized sfNamespacedParameterHolder instance
    */
   public function unserialize($serialized)
   {
-    $data = unserialize($serialized);
-
-    $this->default_namespace = $data[0];
-    $this->parameters = $data[1];
+    $this->__unserialize(unserialize($serialized));
   }
 }
