@@ -10,7 +10,7 @@
 
 require_once(__DIR__.'/../../bootstrap/unit.php');
 
-$t = new lime_test(28);
+$t = new lime_test(29);
 
 // ->clear()
 $t->diag('->clear()');
@@ -141,3 +141,11 @@ $t->is($parameters, $ph->getAll(), '->add() adds a reference of an array of para
 // ->serialize() ->unserialize()
 $t->diag('->serialize() ->unserialize()');
 $t->ok($ph == unserialize(serialize($ph)), 'sfParameterHolder implements the Serializable interface');
+
+// ->unserialize(JUST-A-STRING)
+$ph = new sfParameterHolder();
+$defaultPh = clone $ph;
+$ph->unserialize('FOO');
+
+$t->diag('->unserialize(JUST-A-STRING)');
+$t->ok($defaultPh == $ph, 'sfParameterHolder CVE-2024-28861 fixed -- a non-serializable string');
