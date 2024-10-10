@@ -13,7 +13,6 @@
  *
  * @package    lime
  * @author     Fabien Potencier <fabien.potencier@gmail.com>
- * @version    SVN: $Id: lime.php 29529 2010-05-19 13:41:48Z fabien $
  */
 class lime_test
 {
@@ -520,11 +519,11 @@ class lime_test
   {
     $this->output->error($message, $file, $line, $traces);
 
-  	$this->results['stats']['errors'][] = array(
-  	  'message' => $message,
-  	  'file' => $file,
-  	  'line' => $line,
-  	);
+    $this->results['stats']['errors'][] = array(
+      'message' => $message,
+      'file' => $file,
+      'line' => $line,
+    );
   }
 
   protected function update_stats()
@@ -553,7 +552,8 @@ class lime_test
     $t = array_reverse($traces);
     foreach ($t as $trace)
     {
-      if (isset($trace['object']) && $this->is_test_object($trace['object']))
+      // In internal calls, like error_handle, 'file' will be missing
+      if (isset($trace['object']) && $this->is_test_object($trace['object']) && isset($trace['file']))
       {
         return array($trace['file'], $trace['line']);
       }
@@ -564,7 +564,7 @@ class lime_test
     return array($traces[$last]['file'], $traces[$last]['line']);
   }
 
-  public function handle_error($code, $message, $file, $line, $context)
+  public function handle_error($code, $message, $file, $line, $context = null)
   {
     if (!$this->options['error_reporting'] || ($code & error_reporting()) == 0)
     {
@@ -587,7 +587,11 @@ class lime_test
     $this->error($type.': '.$message, $file, $line, $trace);
   }
 
-  public function handle_exception(Throwable $exception)
+  /**
+   * @param Throwable|Exception $exception
+   * @return bool
+   */
+  public function handle_exception($exception)
   {
     $this->error(get_class($exception).': '.$exception->getMessage(), $exception->getFile(), $exception->getLine(), $exception->getTrace());
 
@@ -1098,7 +1102,10 @@ EOF
 
             $this->output->comment(sprintf('  at %s line %s', $this->get_relative_file($testsuite['tests'][$testcase]['file']).$this->extension, $testsuite['tests'][$testcase]['line']));
             $this->output->info('  '.$testsuite['tests'][$testcase]['message']);
-            $this->output->echoln($testsuite['tests'][$testcase]['error'], null, false);
+            if (isset($testsuite['tests'][$testcase]['error']))
+            {
+              $this->output->echoln($testsuite['tests'][$testcase]['error'], null, false);
+            }
           }
         }
       }
