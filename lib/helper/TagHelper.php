@@ -86,6 +86,18 @@ function escape_javascript($javascript = '')
  */
 function escape_once($html)
 {
+
+  if (is_array($html)) {
+      return array_map('escape_once', $html);
+  }
+  
+  if (!is_string($html)) {
+      if (is_null($html)) {
+          return '';
+      }
+      $html = (string)$html;
+  }
+  
   return fix_double_escape(htmlspecialchars($html, ENT_COMPAT, sfConfig::get('sf_charset')));
 }
 
