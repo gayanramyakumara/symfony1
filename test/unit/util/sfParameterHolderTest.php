@@ -8,9 +8,9 @@
  * file that was distributed with this source code.
  */
 
-require_once(__DIR__.'/../../bootstrap/unit.php');
+require_once __DIR__.'/../../bootstrap/unit.php';
 
-$t = new lime_test(28);
+$t = new lime_test(29);
 
 // ->clear()
 $t->diag('->clear()');
@@ -33,17 +33,17 @@ $t->is($ph->get('bar'), null, '->get() returns null if the key does not exist');
 $ph->set('ref', 'foobar');
 
 $ref1 = null;
-$ref1 = & $ph->get('ref');
+$ref1 = &$ph->get('ref');
 $t->is($ref1, 'foobar');
 
 $ref2 = null;
-$ref2 = & $ph->get('ref'); // obtain the very same reference and modify it
+$ref2 = &$ph->get('ref'); // obtain the very same reference and modify it
 $ref2 = 'barfoo';
 
 $t->is($ref1, 'barfoo');
 $t->is($ref2, 'barfoo');
 $t->is($ph->get('ref'), 'barfoo');
-$t->is($ref2 , $ref1, '->get() returns a reference for the given key');
+$t->is($ref2, $ref1, '->get() returns a reference for the given key');
 
 $ph = new sfParameterHolder();
 $t->is('default_value', $ph->get('foo1', 'default_value'), '->get() takes the default value as its second argument');
@@ -54,11 +54,11 @@ $ph = new sfParameterHolder();
 $ph->set('foo', 'bar');
 $ph->set('yourfoo', 'bar');
 
-$t->is($ph->getNames(), array('foo', 'yourfoo'), '->getNames() returns all key names');
+$t->is($ph->getNames(), ['foo', 'yourfoo'], '->getNames() returns all key names');
 
 // ->getAll()
 $t->diag('->getAll()');
-$parameters = array('foo' => 'bar', 'myfoo' => 'bar');
+$parameters = ['foo' => 'bar', 'myfoo' => 'bar'];
 $ph = new sfParameterHolder();
 $ph->add($parameters);
 $t->is($ph->getAll(), $parameters, '->getAll() returns all parameters');
@@ -113,8 +113,8 @@ $t->is($ph->get('foo'), $foo, '->setByRef() sets the value for a key as a refere
 // ->add()
 $t->diag('->add()');
 $foo = 'bar';
-$parameters = array('foo' => $foo, 'bar' => 'bar');
-$myparameters = array('myfoo' => 'bar', 'mybar' => 'bar');
+$parameters = ['foo' => $foo, 'bar' => 'bar'];
+$myparameters = ['myfoo' => 'bar', 'mybar' => 'bar'];
 
 $ph = new sfParameterHolder();
 $ph->add($parameters);
@@ -127,8 +127,8 @@ $t->is($ph->getAll(), $parameters, '->add() adds an array of parameters, not a r
 // ->addByRef()
 $t->diag('->addByRef()');
 $foo = 'bar';
-$parameters = array('foo' => &$foo, 'bar' => 'bar');
-$myparameters = array('myfoo' => 'bar', 'mybar' => 'bar');
+$parameters = ['foo' => &$foo, 'bar' => 'bar'];
+$myparameters = ['myfoo' => 'bar', 'mybar' => 'bar'];
 
 $ph = new sfParameterHolder();
 $ph->addByRef($parameters);
@@ -141,3 +141,11 @@ $t->is($parameters, $ph->getAll(), '->add() adds a reference of an array of para
 // ->serialize() ->unserialize()
 $t->diag('->serialize() ->unserialize()');
 $t->ok($ph == unserialize(serialize($ph)), 'sfParameterHolder implements the Serializable interface');
+
+// ->unserialize(JUST-A-STRING)
+$ph = new sfParameterHolder();
+$defaultPh = clone $ph;
+$ph->unserialize('FOO');
+
+$t->diag('->unserialize(JUST-A-STRING)');
+$t->ok($defaultPh == $ph, 'sfParameterHolder CVE-2024-28861 fixed -- a non-serializable string');
